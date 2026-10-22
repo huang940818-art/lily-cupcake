@@ -334,6 +334,25 @@ body:has(#fishUI:not([hidden])) #hint{opacity:0;pointer-events:none}
   .top{padding:10px 88px 0 88px} /* 頂列貼上去，左右讓開預覽的兩顆按鈕 */
   #toast{top:52px;left:28%} #skills{top:52px} /* 提示放在島那一側，不要疊到右邊作品卡的 × */
 }
+/* 10/22 手機版整個檢查一遍修的 */
+@media (pointer:coarse){
+  .ph-foot{display:none} /* 手機沒有 M 鍵 */
+  body:has(#phone:not([hidden])) :is(#hint,#joy,#jumpBtn){opacity:0;pointer-events:none} /* 手機開著時，搖桿、跳、提示列會從手機邊緣露出一截 */
+  body:has(#panel.open) #hint{opacity:0;pointer-events:none} /* 橫拿時卡片把提示列切一半 */
+}
+@media (max-width:700px){
+  #hint{max-width:calc(100vw - 24px);flex-wrap:wrap;justify-content:center;gap:2px 12px;border-radius:18px;white-space:normal} /* iPhone SE 寬 375，一行放不下、兩邊字被切掉 */
+  #hint .mb{white-space:nowrap}
+}
+@media (pointer:coarse) and (orientation:landscape) and (max-height:520px){
+  #panel.board .body{padding-top:70px} /* 關閉鈕移到左上後，背包、成就、布告欄這種沒有圖的卡，× 會壓在標題上 */
+  body:has(#phone:not([hidden])) .top nav{opacity:0;pointer-events:none} /* 手機貼滿右側，蓋住右上的按鈕只露半顆；手機裡的設定有一樣的開關 */
+  #hint{margin-left:24px} /* 跟左邊的「回正」黏在一起 */
+  #phone .ph-bar,#phone .ph-home{display:none} /* 橫拿時高度只剩三百多，假手機的時間、瀏海、5G 和底下的橫條把畫面吃掉一大塊，第三排 App 被擠出去 */
+  #phone{padding:8px;border-radius:26px;top:10px;bottom:max(64px,calc(env(safe-area-inset-bottom) + 56px));height:auto} .ph-screen{border-radius:20px} /* 底部讓出「手機」鈕，不然打開就關不掉 */
+  .ph-apps{grid-template-columns:repeat(4,1fr);gap:8px 4px;margin-top:10px} .ph-apps i{width:44px;height:44px;font-size:18px;border-radius:13px} /* 七個 App 兩排放完 */
+  .ph-screen section{padding:12px 12px 10px} .ph-greet b{font-size:17px}
+}
 @media (prefers-reduced-motion:reduce){#loader .cup{animation:none}}
 </style>
 <script type="importmap">
