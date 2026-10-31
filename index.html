@@ -9,6 +9,12 @@
 <meta property="og:image" content="img/og-island.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#F3E8D8">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="作品島">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Ccircle cx=%2216%22 cy=%2214%22 r=%2210%22 fill=%22%23F3E7D5%22/%3E%3Cpath d=%22M7 17h18l-3 11H10z%22 fill=%22%23C8874E%22/%3E%3Ccircle cx=%2216%22 cy=%225%22 r=%223%22 fill=%22%23C8423F%22/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -353,6 +359,16 @@ body:has(#fishUI:not([hidden])) #hint{opacity:0;pointer-events:none}
   .ph-apps{grid-template-columns:repeat(4,1fr);gap:8px 4px;margin-top:10px} .ph-apps i{width:44px;height:44px;font-size:18px;border-radius:13px} /* 七個 App 兩排放完 */
   .ph-screen section{padding:12px 12px 10px} .ph-greet b{font-size:17px}
 }
+/* 10/31 手機直拿：整頁請她轉橫（直式只留給平板和電腦窗口），轉過來自動消失 */
+html,body{overscroll-behavior:none}
+#rotate{display:none;position:fixed;inset:0;z-index:200;background:var(--paper);flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center;padding:24px}
+body.need-rotate #rotate{display:flex}
+#rotate .ph{width:54px;height:92px;border:4px solid var(--ink);border-radius:14px;position:relative;animation:rotPhone 2.4s var(--ease) infinite}
+#rotate .ph::after{content:"";position:absolute;left:50%;bottom:6px;width:14px;height:4px;border-radius:2px;background:var(--ink);transform:translateX(-50%)}
+#rotate b{font-family:var(--display);font-size:22px;font-weight:400}
+#rotate small{font-size:13px;color:var(--ink-2);line-height:1.7}
+#rotate button{padding:9px 18px;border-radius:999px;border:1px solid var(--line);font-size:12px;color:var(--ink-2)}
+@keyframes rotPhone{0%,25%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
 @media (prefers-reduced-motion:reduce){#loader .cup{animation:none}}
 </style>
 <script type="importmap">
@@ -360,6 +376,7 @@ body:has(#fishUI:not([hidden])) #hint{opacity:0;pointer-events:none}
 </script>
 </head>
 <body>
+<div id="rotate"><div class="ph"></div><b>把手機轉橫著看</b><small>作品島是橫式的，轉過來就會自動進去。<br>建議加到主畫面，開起來就是全螢幕橫式。</small><button id="rotateSkip">還是直著看</button></div>
 <div id="loader"><div class="cup"><i></i><b></b><em></em></div><div class="pct">LOADING 0%</div></div>
 
 <canvas id="gl" tabindex="0" aria-label="作品島"></canvas>
@@ -2840,7 +2857,18 @@ function liteShadows(){ if (!MOBILE) return; const sp = new THREE.Sphere(), v = 
     o.getWorldScale(v); const r = o.geometry.boundingSphere.radius*Math.max(v.x, v.y, v.z); if (r < .9){ let inLily = false; o.traverseAncestors(a => { if (a === lily) inLily = true; }); if (!inLily){ o.castShadow = false; off++; } } });
   renderer.shadowMap.autoUpdate = false; renderer.shadowMap.needsUpdate = true; return off; }
 liteShadows(); setTimeout(liteShadows, 4000); // 她的模型是後來才讀進來的，晚一點再掃一次
+// 10/31 手機打開就要橫的：直拿顯示轉橫提示（暫停繪製省電）；Android 第一次點擊時進全螢幕並鎖橫向；iOS 不能鎖，靠提示＋加到主畫面
+const ROT = { skip:false, on:false };
+function checkRot(){ const phone = MOBILE && Math.min(screen.width, screen.height) < 600, on = phone && PORTRAIT() && !ROT.skip;
+  if (on !== ROT.on){ ROT.on = on; document.body.classList.toggle('need-rotate', on); } }
+document.getElementById('rotateSkip').onclick = () => { ROT.skip = true; checkRot(); };
+addEventListener('resize', checkRot); addEventListener('orientationchange', checkRot); checkRot();
+if (MOBILE){ const goLandscape = () => { removeEventListener('pointerup', goLandscape, true);
+    const el = document.documentElement; if (matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches || !el.requestFullscreen) return;
+    el.requestFullscreen({ navigationUI:'hide' }).then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape')).catch(() => {}); };
+  addEventListener('pointerup', goLandscape, true); }
 renderer.setAnimationLoop(() => {
+  if (document.hidden || ROT.on){ clock.getDelta(); return; }
   const dt = Math.min(clock.getDelta(), .1), t = clock.elapsedTime;
   if (MOBILE && (++shadowTick % 2 === 0)) renderer.shadowMap.needsUpdate = true;
   anim.forEach(f => f(t, dt));

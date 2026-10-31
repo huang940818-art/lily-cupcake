@@ -1,0 +1,10 @@
+{
+  "name": "Lily的杯子蛋糕 · 作品島",
+  "short_name": "作品島",
+  "start_url": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#F3E8D8",
+  "theme_color": "#F3E8D8",
+  "icons": [{ "src": "img/icon-512.png", "sizes": "512x512", "type": "image/png" }]
+}
